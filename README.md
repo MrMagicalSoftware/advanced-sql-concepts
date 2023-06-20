@@ -53,7 +53,20 @@ Esempio :
 ![Schermata 2023-06-20 alle 12 50 16](https://github.com/MrMagicalSoftware/advanced-sql-concepts/assets/98833112/443a0fff-044a-496f-a5ab-9a488915317b)
 
 
+Creiamo la nostra window function :
 
+```
+SELECT
+order_id,
+order_date,
+order_total.
+
+SUM ( order_total ) OVER (
+  ORDER BY order_id ASC
+) AS running_total
+FROM orders
+ORDER BY Order_id ASC;
+```
 
 
 
