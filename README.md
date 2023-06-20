@@ -130,6 +130,7 @@ ORDER BY order_date ASC;
 ![Schermata 2023-06-20 alle 13 17 33](https://github.com/MrMagicalSoftware/advanced-sql-concepts/assets/98833112/f5cf07ea-6f71-459c-92af-1cb597d35223)
 
 
+![Schermata 2023-06-20 alle 13 19 21](https://github.com/MrMagicalSoftware/advanced-sql-concepts/assets/98833112/6860b387-b720-478a-8a54-1a1532148747)
 
 
 
