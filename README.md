@@ -95,6 +95,20 @@ ANDIAMO A PARTIZIONARE SECONDO UN CRITERIO:
 
 
 
+```
+SELECT
+order_id,
+order_date,
+order_total.
+
+SUM ( order_total ) OVER (
+  PARTITION BY order_date
+  ORDER BY order_id ASC
+) AS running_total
+FROM orders
+ORDER BY Order_id ASC;
+```
+
 
 
 
