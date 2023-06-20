@@ -68,6 +68,7 @@ FROM orders
 ORDER BY Order_id ASC;
 ```
 
+![Schermata 2023-06-20 alle 12 57 52](https://github.com/MrMagicalSoftware/advanced-sql-concepts/assets/98833112/2ff2a0e6-1953-4c83-8272-925e6d8f21e4)
 
 
 
