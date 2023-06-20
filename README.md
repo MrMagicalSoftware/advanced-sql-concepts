@@ -109,10 +109,25 @@ FROM orders
 ORDER BY Order_id ASC;
 ```
 
+Possiamo notare cge ordinando per id il risultato non è chiaro quindi
+modifichiamo il campo nel seguente modo :
 
 
+```
+SELECT
+order_id,
+order_date,
+order_total.
 
+SUM ( order_total ) OVER (
+  PARTITION BY order_date
+  ORDER BY order_id ASC
+) AS running_total
+FROM orders
+ORDER BY order_date ASC;
+```
 
+![Schermata 2023-06-20 alle 13 17 33](https://github.com/MrMagicalSoftware/advanced-sql-concepts/assets/98833112/f5cf07ea-6f71-459c-92af-1cb597d35223)
 
 
 
