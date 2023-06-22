@@ -446,13 +446,213 @@ Si noti che per ottimizzare le query, ci si concentra su diverse strategie come 
     Query ottimizzata:
     ```sql
     SELECT * FROM Sales.SalesOrderHeader
-    WHERE
-
- OrderDate >= '2014-07-01' AND OrderDate < '2014-08-01';
+    WHERE OrderDate >= '2014-07-01' AND OrderDate < '2014-08-01';
     ```
 
 Nota :
 l'ottimizzazione delle query può dipendere da vari fattori, tra cui l'architettura del database, gli indici esistenti, le dimensioni delle tabelle, ecc. Questi esempi sono intesi come linee guida generali e potrebbero non applicarsi a tutti i casi o a tutte le configurazioni del database.
+
+
+
+Certo, ecco altri dieci esempi di query SQL che potrebbero essere ottimizzate:
+
+6. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Sales.Customer 
+    WHERE PersonID IN (SELECT BusinessEntityID FROM Person.Person WHERE FirstName = 'John');
+    ```
+    Ottimizzazione:
+    
+    Possiamo eliminare la subquery utilizzando un JOIN.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT c.*
+    FROM Sales.Customer c
+    JOIN Person.Person p ON c.PersonID = p.BusinessEntityID
+    WHERE p.FirstName = 'John';
+    ```
+
+7. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Production.Product 
+    WHERE ProductID = (SELECT ProductID FROM Sales.SalesOrderDetail WHERE OrderQty = (SELECT MAX(OrderQty) FROM Sales.SalesOrderDetail));
+    ```
+    Ottimizzazione:
+    
+    Possiamo ridurre la subquery nidificata utilizzando un JOIN.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT p.*
+    FROM Production.Product p
+    JOIN Sales.SalesOrderDetail sod ON p.ProductID = sod.ProductID
+    WHERE sod.OrderQty = (SELECT MAX(OrderQty) FROM Sales.SalesOrderDetail);
+    ```
+
+8. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Sales.Customer 
+    WHERE TerritoryID IN (SELECT TerritoryID FROM Sales.SalesTerritory WHERE CountryRegionCode = 'US' AND Group = 'North America');
+    ```
+    Ottimizzazione:
+    
+    Possiamo sostituire la clausola IN con un JOIN.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT c.*
+    FROM Sales.Customer c
+    JOIN Sales.SalesTerritory st ON c.TerritoryID = st.TerritoryID
+    WHERE st.CountryRegionCode = 'US' AND st.Group = 'North America';
+    ```
+
+9. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Production.Product 
+    WHERE ListPrice > (SELECT AVG(ListPrice) FROM Production.Product WHERE Color = 'Black');
+    ```
+    Ottimizzazione:
+    
+    Possiamo migliorare l'efficienza calcolando la media una volta e memorizzandola in una variabile.
+    
+    Query ottimizzata:
+    ```sql
+    DECLARE @average_black_price DECIMAL(18, 2);
+    SELECT @average_black_price = AVG(ListPrice) FROM Production.Product WHERE Color = 'Black';
+    SELECT * FROM Production.Product WHERE ListPrice > @average_black_price;
+    ```
+
+10. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Sales.SalesOrderHeader
+    WHERE YEAR(OrderDate) = 2014 AND DAY(OrderDate) = 15;
+    ```
+    Ottimizzazione:
+    
+    Utilizzare funzioni sugli attributi nella clausola WHERE può impedire l'uso degli indici. E' meglio utilizzare una range query.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT * FROM Sales.SalesOrderHeader
+    WHERE OrderDate >= '2014-01-15' AND OrderDate < '2014-01-16';
+    ```
+
+11. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Sales.SalesOrderHeader
+    WHERE YEAR(OrderDate) = 2013 AND MONTH(OrderDate) = 6;
+    ```
+    Ottimizzazione:
+
+    Si può migliorare utilizzando un range di date.
+
+    Query ottimizzata
+
+:
+    ```sql
+    SELECT * FROM Sales.SalesOrderHeader
+    WHERE OrderDate >= '2013-06-01' AND OrderDate < '2013-07-01';
+    ```
+
+12. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM HumanResources.Employee 
+    WHERE JobTitle LIKE '%Marketing%';
+    ```
+    Ottimizzazione:
+    
+    Utilizzare l'operatore LIKE con un jolly all'inizio può essere costoso. Se possibile, limitare l'uso dei jolly.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT * FROM HumanResources.Employee
+    WHERE JobTitle LIKE 'Marketing%';
+    ```
+
+13. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Production.Product 
+    WHERE ListPrice > ALL (SELECT ListPrice FROM Production.Product WHERE Color = 'Black');
+    ```
+    Ottimizzazione:
+    
+    Si può utilizzare MAX() invece di ALL per migliorare le prestazioni.
+    
+    Query ottimizzata:
+    ```sql
+    DECLARE @max_black_price DECIMAL(18, 2);
+    SELECT @max_black_price = MAX(ListPrice) FROM Production.Product WHERE Color = 'Black';
+    SELECT * FROM Production.Product WHERE ListPrice > @max_black_price;
+    ```
+
+14. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Production.Product 
+    WHERE ProductID = ANY (SELECT ProductID FROM Sales.SalesOrderDetail WHERE OrderQty > 10);
+    ```
+    Ottimizzazione:
+    
+    Possiamo eliminare la subquery utilizzando un JOIN.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT p.*
+    FROM Production.Product p
+    JOIN Sales.SalesOrderDetail sod ON p.ProductID = sod.ProductID
+    WHERE sod.OrderQty > 10;
+    ```
+
+15. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Sales.SalesOrderDetail 
+    WHERE UnitPrice < ANY (SELECT ListPrice FROM Production.Product WHERE Color = 'Red');
+    ```
+    Ottimizzazione:
+    
+    Possiamo migliorare l'efficienza utilizzando MIN() invece di ANY.
+    
+    Query ottimizzata:
+    ```sql
+    DECLARE @min_red_price DECIMAL(18, 2);
+    SELECT @min_red_price = MIN(ListPrice) FROM Production.Product WHERE Color = 'Red';
+    SELECT * FROM Sales.SalesOrderDetail WHERE UnitPrice < @min_red_price;
+    ```
+
+Le ottimizzazioni specifiche possono dipendere da molti fattori, come la struttura del database, l'hardware su cui il database è ospitato, la dimensione dei dati e così via. Alcune delle ottimizzazioni proposte potrebbero non essere applicabili in ogni situazione, ma forniscono un punto di partenza per pensare a come migliorare le prestazioni delle query SQL.
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
