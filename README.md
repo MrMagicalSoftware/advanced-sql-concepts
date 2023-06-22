@@ -353,6 +353,119 @@ In questo esempio,
  utilizziamo la funzione LEAD con la clausola OVER per ottenere la data dell'ordine successivo per ogni cliente. Quindi utilizziamo la funzione DATEDIFF per calcolare il numero di giorni tra la data dell'ordine corrente e la data dell'ordine successivo.
 
 
+## ESERCIZI DI OTTIMIZZAZIONE 
+
+
+Creare query SQL ottimizzate è molto importante per garantire un utilizzo efficiente delle risorse del database e velocizzare il recupero dei dati.
+Si noti che per ottimizzare le query, ci si concentra su diverse strategie come l'uso di indici, evitando l'uso di funzioni negli operatori WHERE, la riduzione delle chiamate a tabelle di grandi dimensioni, l'uso di operatori di confronto più efficienti e l'uso di clausole EXISTS anziché IN quando possibile.
+
+1. Esercizio: 
+
+   Query originale:
+    ```sql
+    SELECT * FROM Sales.SalesOrderDetail
+    WHERE ProductID = (SELECT ProductID FROM Production.Product WHERE Name = 'Road-650 Red, 48');
+    ```
+   Ottimizzazione:
+   
+   Questa query può essere ottimizzata eliminando la subquery e utilizzando un JOIN.
+   
+   Query ottimizzata:
+    ```sql
+    SELECT sod.* 
+    FROM Sales.SalesOrderDetail sod
+    JOIN Production.Product p ON sod.ProductID = p.ProductID
+    WHERE p.Name = 'Road-650 Red, 48';
+    ```
+
+2. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Sales.Customer 
+    WHERE TerritoryID IN (SELECT TerritoryID FROM Sales.SalesTerritory WHERE Name = 'Northwest');
+    ```
+    Ottimizzazione:
+    
+    Invece di utilizzare la clausola IN, possiamo utilizzare un JOIN per ottimizzare la query.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT c.*
+    FROM Sales.Customer c
+    JOIN Sales.SalesTerritory st ON c.TerritoryID = st.TerritoryID
+    WHERE st.Name = 'Northwest';
+    ```
+
+3. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Production.Product 
+    WHERE ListPrice > (SELECT AVG(ListPrice) FROM Production.Product);
+    ```
+    Ottimizzazione:
+    
+    Possiamo migliorare l'efficienza calcolando la media una volta e memorizzandola in una variabile.
+    
+    Query ottimizzata:
+    ```sql
+    DECLARE @average_price DECIMAL(18, 2);
+    SELECT @average_price = AVG(ListPrice) FROM Production.Product;
+    SELECT * FROM Production.Product WHERE ListPrice > @average_price;
+    ```
+
+4. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Production.Product
+    WHERE Name LIKE '%Road%';
+    ```
+    Ottimizzazione:
+    
+    Utilizzare l'operatore LIKE con un jolly all'inizio può essere costoso. Se possibile, limitare l'uso dei jolly.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT * FROM Production.Product
+    WHERE Name LIKE 'Road%';
+    ```
+
+5. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Sales.SalesOrderHeader
+    WHERE YEAR(OrderDate) = 2014 AND MONTH(OrderDate) = 7;
+    ```
+    Ottimizzazione:
+    
+    Utilizzare funzioni sugli attributi nella clausola WHERE può impedire l'uso degli indici. E' meglio utilizzare una range query.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT * FROM Sales.SalesOrderHeader
+    WHERE
+
+ OrderDate >= '2014-07-01' AND OrderDate < '2014-08-01';
+    ```
+
+Nota :
+l'ottimizzazione delle query può dipendere da vari fattori, tra cui l'architettura del database, gli indici esistenti, le dimensioni delle tabelle, ecc. Questi esempi sono intesi come linee guida generali e potrebbero non applicarsi a tutti i casi o a tutte le configurazioni del database.
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
