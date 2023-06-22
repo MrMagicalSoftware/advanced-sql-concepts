@@ -829,6 +829,218 @@ ________________________________________________________________________________
     SELECT @min_green_price = MIN(ListPrice) FROM Production.Product WHERE Color = 'Green';
     SELECT * FROM Sales.SalesOrderDetail WHERE UnitPrice < @min_green_price;
     ```
+___________________________________________________
+
+
+Certo, ecco altri dieci esercizi di query SQL con un livello di difficoltà crescente:
+
+26. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Production.Product 
+    WHERE ProductID IN (SELECT ProductID FROM Production.ProductReview WHERE Rating > 3);
+    ```
+    Ottimizzazione:
+    
+    Possiamo utilizzare un JOIN per eliminare la subquery.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT p.*
+    FROM Production.Product p
+    JOIN Production.ProductReview pr ON p.ProductID = pr.ProductID
+    WHERE pr.Rating > 3;
+    ```
+
+27. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Production.Product 
+    WHERE ListPrice > (SELECT AVG(ListPrice) FROM Production.Product WHERE Size = 'M');
+    ```
+    Ottimizzazione:
+    
+    Possiamo precalcolare l'AVG per migliorare le prestazioni.
+    
+    Query ottimizzata:
+    ```sql
+    DECLARE @avg_price DECIMAL(18, 2);
+    SELECT @avg_price = AVG(ListPrice) FROM Production.Product WHERE Size = 'M';
+    SELECT * FROM Production.Product WHERE ListPrice > @avg_price;
+    ```
+
+28. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Sales.SalesOrderHeader
+    WHERE SalesPersonID = (SELECT BusinessEntityID FROM HumanResources.Employee WHERE JobTitle = 'Sales Representative');
+    ```
+    Ottimizzazione:
+    
+    Possiamo eliminare la subquery utilizzando un JOIN.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT soh.*
+    FROM Sales.SalesOrderHeader soh
+    JOIN HumanResources.Employee e ON soh.SalesPersonID = e.BusinessEntityID
+    WHERE e.JobTitle = 'Sales Representative';
+    ```
+
+29. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Sales.SalesOrderDetail
+    WHERE ProductID IN (SELECT ProductID FROM Production.Product WHERE Color = 'Red' OR Color = 'Blue');
+    ```
+    Ottimizzazione:
+    
+    Possiamo eliminare la subquery utilizzando un JOIN.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT sod.*
+    FROM Sales.SalesOrderDetail sod
+    JOIN Production.Product p ON sod.ProductID = p.ProductID
+    WHERE p.Color IN ('Red', 'Blue');
+    ```
+
+30. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Sales.SalesOrderHeader soh
+    WHERE EXISTS (SELECT * FROM Sales.SalesOrderDetail sod WHERE soh.SalesOrderID = sod.SalesOrderID AND sod.OrderQty > 10);
+    ```
+    Ottimizzazione:
+    
+    Possiamo eliminare l'uso di EXISTS utilizzando un JOIN.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT DISTINCT soh.*
+    FROM Sales.SalesOrderHeader soh
+    JOIN Sales.SalesOrderDetail sod ON soh.SalesOrderID = sod.SalesOrderID
+    WHERE sod.OrderQty > 10;
+    ```
+
+31. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM HumanResources.Employee e
+    WHERE NOT EXISTS (SELECT * FROM HumanResources.EmployeePayHistory eph WHERE e.BusinessEntityID = eph.BusinessEntityID AND RateChangeDate > '2015-01-01');
+    ```
+    Ottimizzazione:
+    
+    Possiamo utilizzare un LEFT JOIN e controllare le righe NULL per eliminare l'uso di NOT
+
+ EXISTS.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT e.*
+    FROM HumanResources.Employee e
+    LEFT JOIN HumanResources.EmployeePayHistory eph ON e.BusinessEntityID = eph.BusinessEntityID AND eph.RateChangeDate > '2015-01-01'
+    WHERE eph.BusinessEntityID IS NULL;
+    ```
+
+32. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Production.Product p
+    WHERE (SELECT AVG(Rating) FROM Production.ProductReview pr WHERE p.ProductID = pr.ProductID) > 4;
+    ```
+    Ottimizzazione:
+    
+    Possiamo eliminare la subquery utilizzando un JOIN e GROUP BY.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT p.*
+    FROM Production.Product p
+    JOIN (SELECT ProductID, AVG(Rating) as AverageRating FROM Production.ProductReview GROUP BY ProductID) pr ON p.ProductID = pr.ProductID
+    WHERE pr.AverageRating > 4;
+    ```
+
+33. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT (SELECT Name FROM Production.Product WHERE ProductID = sod.ProductID) as ProductName, (SELECT Name FROM Sales.SalesTerritory WHERE TerritoryID = soh.TerritoryID) as TerritoryName
+    FROM Sales.SalesOrderDetail sod
+    JOIN Sales.SalesOrderHeader soh ON sod.SalesOrderID = soh.SalesOrderID;
+    ```
+    Ottimizzazione:
+    
+    Possiamo eliminare le subquery utilizzando dei JOIN.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT p.Name as ProductName, st.Name as TerritoryName
+    FROM Sales.SalesOrderDetail sod
+    JOIN Sales.SalesOrderHeader soh ON sod.SalesOrderID = soh.SalesOrderID
+    JOIN Production.Product p ON sod.ProductID = p.ProductID
+    JOIN Sales.SalesTerritory st ON soh.TerritoryID = st.TerritoryID;
+    ```
+
+34. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT (SELECT AVG(Rating) FROM Production.ProductReview WHERE ProductID = p.ProductID) as AverageRating
+    FROM Production.Product p
+    WHERE (SELECT COUNT(*) FROM Production.ProductReview WHERE ProductID = p.ProductID) > 5;
+    ```
+    Ottimizzazione:
+    
+    Possiamo eliminare le subquery utilizzando un JOIN, GROUP BY, e HAVING.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT p.ProductID, AVG(pr.Rating) as AverageRating
+    FROM Production.Product p
+    JOIN Production.ProductReview pr ON p.ProductID = pr.ProductID
+    GROUP BY p.ProductID
+    HAVING COUNT(*) > 5;
+    ```
+
+35. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT (SELECT MAX(OrderQty) FROM Sales.SalesOrderDetail WHERE ProductID = p.ProductID) as MaxOrderQty
+    FROM Production.Product p
+    WHERE (SELECT SUM(OrderQty) FROM Sales.SalesOrderDetail WHERE ProductID = p.ProductID) > 100;
+    ```
+    Ottimizzazione:
+    
+    Possiamo eliminare le subquery utilizzando un JOIN, GROUP BY, e HAVING.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT p.ProductID, MAX(sod.OrderQty) as MaxOrderQty
+    FROM Production.Product p
+    JOIN Sales.SalesOrderDetail sod ON p.ProductID = sod.ProductID
+    GROUP BY p.ProductID
+    HAVING SUM(sod.OrderQty) > 100;
+    ```
+
+
+
+
+
+
+
+
+
+
+
 
 
 
