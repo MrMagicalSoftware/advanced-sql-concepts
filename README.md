@@ -643,6 +643,209 @@ Le ottimizzazioni specifiche possono dipendere da molti fattori, come la struttu
 
 
 
+___________________________________________________________________________________________________________________________________
+
+
+
+16. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Sales.Customer
+    WHERE TerritoryID = (SELECT TerritoryID FROM Sales.SalesTerritory WHERE Name = 'Southeast');
+    ```
+    Ottimizzazione:
+    
+    Possiamo sostituire la subquery con un JOIN.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT c.*
+    FROM Sales.Customer c
+    JOIN Sales.SalesTerritory st ON c.TerritoryID = st.TerritoryID
+    WHERE st.Name = 'Southeast';
+    ```
+
+17. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Production.Product
+    WHERE ProductID = (SELECT ProductID FROM Sales.SalesOrderDetail WHERE LineTotal = (SELECT MAX(LineTotal) FROM Sales.SalesOrderDetail));
+    ```
+    Ottimizzazione:
+    
+    Possiamo ridurre la subquery nidificata utilizzando un JOIN.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT p.*
+    FROM Production.Product p
+    JOIN Sales.SalesOrderDetail sod ON p.ProductID = sod.ProductID
+    WHERE sod.LineTotal = (SELECT MAX(LineTotal) FROM Sales.SalesOrderDetail);
+    ```
+
+18. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Sales.Customer
+    WHERE TerritoryID IN (SELECT TerritoryID FROM Sales.SalesTerritory WHERE CountryRegionCode = 'CA' AND Group = 'North America');
+    ```
+    Ottimizzazione:
+    
+    Possiamo sostituire la clausola IN con un JOIN.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT c.*
+    FROM Sales.Customer c
+    JOIN Sales.SalesTerritory st ON c.TerritoryID = st.TerritoryID
+    WHERE st.CountryRegionCode = 'CA' AND st.Group = 'North America';
+    ```
+
+19. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Production.Product
+    WHERE ListPrice > (SELECT AVG(ListPrice) FROM Production.Product WHERE Color = 'Blue');
+    ```
+    Ottimizzazione:
+    
+    Possiamo migliorare l'efficienza calcolando la media una volta e memorizzandola in una variabile.
+    
+    Query ottimizzata:
+    ```sql
+    DECLARE @average_blue_price DECIMAL(18, 2);
+    SELECT @average_blue_price = AVG(ListPrice) FROM Production.Product WHERE Color = 'Blue';
+    SELECT * FROM Production.Product WHERE ListPrice > @average_blue_price;
+    ```
+
+20. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Sales.SalesOrderHeader
+    WHERE YEAR(OrderDate) = 2015 AND DAY(OrderDate) = 31;
+    ```
+    Ottimizzazione:
+    
+    Utilizzare funzioni sugli attributi nella clausola WHERE può impedire l'uso degli indici. E' meglio utilizzare una range query.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT * FROM Sales.SalesOrderHeader
+    WHERE OrderDate >= '2015-01-31' AND OrderDate < '2015-02-01';
+    ```
+
+21. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Sales.SalesOrderHeader
+    WHERE YEAR(OrderDate) = 2015 AND MONTH(OrderDate) = 7;
+    ```
+    Ottimizzazione:
+
+    Possiamo migliorare utilizzando un range
+
+ di date.
+
+    Query ottimizzata:
+    ```sql
+    SELECT * FROM Sales.SalesOrderHeader
+    WHERE OrderDate >= '2015-07-01' AND OrderDate < '2015-08-01';
+    ```
+
+22. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM HumanResources.Employee
+    WHERE JobTitle LIKE '%Engineer%';
+    ```
+    Ottimizzazione:
+    
+    Utilizzare l'operatore LIKE con un jolly all'inizio può essere costoso. Se possibile, limitare l'uso dei jolly.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT * FROM HumanResources.Employee
+    WHERE JobTitle LIKE 'Engineer%';
+    ```
+
+23. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Production.Product
+    WHERE ListPrice > ALL (SELECT ListPrice FROM Production.Product WHERE Color = 'Yellow');
+    ```
+    Ottimizzazione:
+    
+    Possiamo utilizzare MAX() invece di ALL per migliorare le prestazioni.
+    
+    Query ottimizzata:
+    ```sql
+    DECLARE @max_yellow_price DECIMAL(18, 2);
+    SELECT @max_yellow_price = MAX(ListPrice) FROM Production.Product WHERE Color = 'Yellow';
+    SELECT * FROM Production.Product WHERE ListPrice > @max_yellow_price;
+    ```
+
+24. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Production.Product
+    WHERE ProductID = ANY (SELECT ProductID FROM Sales.SalesOrderDetail WHERE OrderQty > 20);
+    ```
+    Ottimizzazione:
+    
+    Possiamo eliminare la subquery utilizzando un JOIN.
+    
+    Query ottimizzata:
+    ```sql
+    SELECT p.*
+    FROM Production.Product p
+    JOIN Sales.SalesOrderDetail sod ON p.ProductID = sod.ProductID
+    WHERE sod.OrderQty > 20;
+    ```
+
+25. Esercizio:
+
+    Query originale:
+    ```sql
+    SELECT * FROM Sales.SalesOrderDetail
+    WHERE UnitPrice < ANY (SELECT ListPrice FROM Production.Product WHERE Color = 'Green');
+    ```
+    Ottimizzazione:
+    
+    Possiamo migliorare l'efficienza utilizzando MIN() invece di ANY.
+    
+    Query ottimizzata:
+    ```sql
+    DECLARE @min_green_price DECIMAL(18, 2);
+    SELECT @min_green_price = MIN(ListPrice) FROM Production.Product WHERE Color = 'Green';
+    SELECT * FROM Sales.SalesOrderDetail WHERE UnitPrice < @min_green_price;
+    ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
