@@ -242,7 +242,115 @@ In questo esempio, utilizziamo la funzione di aggregazione SUM con la clausola O
 
 Questi esempi mostrano come utilizzare le Window Function con la clausola OVER per risolvere diversi tipi di problemi analitici utilizzando AdventureWorks 2014 come database di esempio.
 
+________________________
 
+
+
+
+Esercizio 1: Trova il numero di ordini effettuati in ogni anno e calcola la percentuale rispetto al numero totale di ordini.
+Soluzione:
+
+```sql
+SELECT YEAR(OrderDate) AS OrderYear,
+       COUNT(*) OVER (PARTITION BY YEAR(OrderDate)) AS TotalOrders,
+       (COUNT(*) OVER (PARTITION BY YEAR(OrderDate)) / CAST(COUNT(*) OVER () AS FLOAT)) * 100 AS Percentage
+FROM Sales.SalesOrderHeader;
+```
+In questo esempio, utilizziamo la funzione COUNT con la clausola OVER per calcolare il numero di ordini effettuati in ogni anno e la funzione COUNT senza la clausola OVER per calcolare il numero totale di ordini. Quindi calcoliamo la percentuale dividendo il numero di ordini in ogni anno per il numero totale di ordini.
+
+Esercizio 2: Calcola il saldo cumulativo degli ordini per ogni cliente.
+Soluzione:
+
+```sql
+SELECT CustomerID, OrderDate, TotalDue,
+       SUM(TotalDue) OVER (PARTITION BY CustomerID ORDER BY OrderDate ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS CumulativeBalance
+FROM Sales.SalesOrderHeader;
+```
+In questo esempio, utilizziamo la funzione SUM con la clausola OVER e la clausola ROWS BETWEEN per calcolare il saldo cumulativo degli ordini per ogni cliente. La clausola ROWS BETWEEN specifica che la somma deve essere calcolata dalla riga di partenza (UNBOUNDED PRECEDING) fino alla riga corrente (CURRENT ROW).
+
+Esercizio 3: Trova il numero di giorni trascorsi tra l'ordine corrente e l'ultimo ordine effettuato da ogni cliente.
+Soluzione:
+
+```sql
+SELECT CustomerID, OrderDate,
+       DATEDIFF(DAY, LAG(OrderDate) OVER (PARTITION BY CustomerID ORDER BY OrderDate), OrderDate) AS DaysSinceLastOrder
+FROM Sales.SalesOrderHeader;
+```
+In questo esempio, utilizziamo la funzione LAG con la clausola OVER per ottenere la data dell'ultimo ordine effettuato da ogni cliente. Quindi utilizziamo la funzione DATEDIFF per calcolare il numero di giorni trascorsi tra l'ordine corrente e l'ultimo ordine.
+
+Esercizio 4: Calcola la media mobile degli importi degli ordini per ogni cliente considerando gli ultimi 3 ordini.
+Soluzione:
+
+```sql
+SELECT CustomerID, OrderDate, TotalDue,
+       AVG(TotalDue) OVER (PARTITION BY CustomerID ORDER BY OrderDate ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS MovingAverage
+FROM Sales.SalesOrderHeader;
+```
+In questo esempio, utilizziamo la funzione AVG con la clausola OVER e la clausola ROWS BETWEEN per calcolare la media mobile degli importi degli ultimi 3 ordini per ogni cliente. La clausola ROWS BETWEEN specifica che la media deve essere calcolata considerando le 2 righe precedenti (2 PRECEDING) oltre alla riga corrente (CURRENT ROW).
+
+Esercizio 5: Trova il cliente con l'import
+
+o totale più alto degli ordini.
+Soluzione:
+
+```sql
+SELECT CustomerID, SUM(TotalDue) AS TotalAmount
+FROM Sales.SalesOrderHeader
+GROUP BY CustomerID
+HAVING SUM(TotalDue) = (SELECT MAX(TotalAmount) FROM (SELECT SUM(TotalDue) AS TotalAmount FROM Sales.SalesOrderHeader GROUP BY CustomerID) AS subquery);
+```
+In questo esempio, utilizziamo la funzione SUM con la clausola OVER per calcolare l'importo totale degli ordini per ogni cliente. Quindi utilizziamo una subquery per trovare il massimo importo totale e confrontarlo con l'importo totale di ciascun cliente nella clausola HAVING per selezionare il cliente corrispondente.
+
+Esercizio 6: Trova il cliente con il numero massimo di ordini effettuati.
+Soluzione:
+
+```sql
+SELECT CustomerID, COUNT(*) AS TotalOrders
+FROM Sales.SalesOrderHeader
+GROUP BY CustomerID
+HAVING COUNT(*) = (SELECT MAX(TotalOrders) FROM (SELECT COUNT(*) AS TotalOrders FROM Sales.SalesOrderHeader GROUP BY CustomerID) AS subquery);
+```
+In questo esempio, utilizziamo la funzione COUNT con la clausola OVER per calcolare il numero di ordini effettuati per ogni cliente. Quindi utilizziamo una subquery per trovare il massimo numero di ordini e confrontarlo con il numero di ordini di ciascun cliente nella clausola HAVING per selezionare il cliente corrispondente.
+
+Esercizio 7: Trova la data dell'ultimo ordine effettuato per ogni cliente.
+Soluzione:
+
+```sql
+SELECT CustomerID, MAX(OrderDate) OVER (PARTITION BY CustomerID) AS LastOrderDate
+FROM Sales.SalesOrderHeader;
+```
+In questo esempio, utilizziamo la funzione MAX con la clausola OVER per trovare la data dell'ultimo ordine effettuato per ogni cliente.
+
+Esercizio 8: Trova la data dell'ordine più vecchio effettuato per ogni cliente.
+Soluzione:
+
+```sql
+SELECT CustomerID, MIN(OrderDate) OVER (PARTITION BY CustomerID) AS OldestOrderDate
+FROM Sales.SalesOrderHeader;
+```
+In questo esempio, utilizziamo la funzione MIN con la clausola OVER per trovare la data dell'ordine più vecchio effettuato per ogni cliente.
+
+Esercizio 9: Trova il numero di ordini consecutivi effettuati da ogni cliente.
+Soluzione:
+
+```sql
+SELECT CustomerID, OrderDate,
+       ROW_NUMBER() OVER (PARTITION BY CustomerID ORDER BY OrderDate) AS ConsecutiveOrderNumber
+FROM Sales.SalesOrderHeader;
+```
+In questo esempio, utilizziamo la funzione ROW_NUMBER con la clausola OVER per assegnare un numero sequenziale ai record di ogni cliente, ordinati per data dell'ordine. Questo numero rappresenta il numero di ordine consecutivo per ogni cliente.
+
+Esercizio 10: Calcola la differenza in giorni tra la data dell'ordine corrente e la data dell'ordine successivo per ogni cliente.
+Soluzione:
+
+```sql
+SELECT CustomerID, OrderDate,
+       DATEDIFF(DAY, OrderDate, LEAD(OrderDate) OVER (PARTITION BY CustomerID ORDER BY OrderDate)) AS DaysToNextOrder
+FROM Sales.SalesOrderHeader;
+```
+In questo esempio,
+
+ utilizziamo la funzione LEAD con la clausola OVER per ottenere la data dell'ordine successivo per ogni cliente. Quindi utilizziamo la funzione DATEDIFF per calcolare il numero di giorni tra la data dell'ordine corrente e la data dell'ordine successivo.
 
 
 
