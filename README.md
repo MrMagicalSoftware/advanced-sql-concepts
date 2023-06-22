@@ -135,6 +135,126 @@ ORDER BY order_date ASC;
 
 
 
+Certamente! Di seguito troverai 10 esercizi con relative soluzioni e codice utilizzando le Window Function con la clausola OVER in SQL Server utilizzando AdventureWorks 2014 come esempio.
+
+Esercizio 1: Calcola la somma totale degli importi degli ordini per ogni cliente.
+Soluzione:
+
+```sql
+SELECT CustomerID, SUM(TotalDue) OVER (PARTITION BY CustomerID) AS TotalAmount
+FROM Sales.SalesOrderHeader;
+```
+In questo esempio, utilizziamo la funzione di aggregazione SUM con la clausola OVER per calcolare la somma totale degli importi degli ordini per ogni cliente.
+
+Esercizio 2: Trova il numero totale di ordini effettuati da ogni cliente e mostra anche la somma cumulativa dei totali degli ordini.
+Soluzione:
+
+```sql
+SELECT CustomerID, COUNT(*) OVER (PARTITION BY CustomerID) AS TotalOrders,
+       SUM(TotalDue) OVER (PARTITION BY CustomerID ORDER BY OrderDate) AS CumulativeTotal
+FROM Sales.SalesOrderHeader;
+```
+In questo esempio, utilizziamo le funzioni di aggregazione COUNT e SUM con la clausola OVER per calcolare il numero totale di ordini per ogni cliente e la somma cumulativa dei totali degli ordini.
+
+Esercizio 3: Calcola la media degli importi degli ordini per ogni cliente e mostra anche la media cumulativa degli importi.
+Soluzione:
+
+```sql
+SELECT CustomerID, TotalDue,
+       AVG(TotalDue) OVER (PARTITION BY CustomerID) AS AverageAmount,
+       AVG(TotalDue) OVER (PARTITION BY CustomerID ORDER BY OrderDate) AS CumulativeAverage
+FROM Sales.SalesOrderHeader;
+```
+In questo esempio, utilizziamo la funzione di aggregazione AVG con la clausola OVER per calcolare la media degli importi degli ordini per ogni cliente e la media cumulativa degli importi.
+
+Esercizio 4: Trova il valore massimo e minimo degli importi degli ordini per ogni cliente.
+Soluzione:
+
+```sql
+SELECT CustomerID, TotalDue,
+       MAX(TotalDue) OVER (PARTITION BY CustomerID) AS MaxAmount,
+       MIN(TotalDue) OVER (PARTITION BY CustomerID) AS MinAmount
+FROM Sales.SalesOrderHeader;
+```
+In questo esempio, utilizziamo le funzioni di aggregazione MAX e MIN con la clausola OVER per trovare il valore massimo e minimo degli importi degli ordini per ogni cliente.
+
+Esercizio 5: Calcola la differenza tra l'importo di ciascun ordine e la media degli importi degli ordini per ogni cliente.
+Soluzione:
+
+```sql
+SELECT CustomerID, TotalDue,
+       TotalDue - AVG(TotalDue) OVER (PARTITION BY CustomerID) AS AmountDifference
+FROM Sales.SalesOrderHeader;
+```
+In questo esempio, sottraiamo la media degli importi degli ordini per ogni cliente dall'importo di ciascun ordine utilizzando la funzione AVG con la clausola OVER.
+
+Esercizio 6: Calcola la percentuale dell'importo di ciascun ordine rispetto all'importo totale degli ordini per ogni cliente.
+Soluzione:
+
+```sql
+SELECT CustomerID, TotalDue,
+       (TotalDue / SUM(TotalDue) OVER (PARTITION BY CustomerID)) * 100 AS
+
+ AmountPercentage
+FROM Sales.SalesOrderHeader;
+```
+In questo esempio, calcoliamo la percentuale dell'importo di ciascun ordine rispetto all'importo totale degli ordini per ogni cliente utilizzando la funzione SUM con la clausola OVER.
+
+Esercizio 7: Trova il valore massimo dell'importo di ciascun ordine per ogni anno.
+Soluzione:
+
+```sql
+SELECT OrderDate, TotalDue,
+       MAX(TotalDue) OVER (PARTITION BY YEAR(OrderDate)) AS MaxAmount
+FROM Sales.SalesOrderHeader;
+```
+In questo esempio, utilizziamo la funzione MAX con la clausola OVER per trovare il valore massimo dell'importo di ciascun ordine per ogni anno utilizzando la funzione YEAR per estrarre l'anno dalla colonna OrderDate.
+
+Esercizio 8: Calcola la differenza tra l'importo di ciascun ordine e l'importo massimo degli ordini per ogni anno.
+Soluzione:
+
+```sql
+SELECT OrderDate, TotalDue,
+       TotalDue - MAX(TotalDue) OVER (PARTITION BY YEAR(OrderDate)) AS AmountDifference
+FROM Sales.SalesOrderHeader;
+```
+In questo esempio, sottraiamo l'importo massimo degli ordini per ogni anno dall'importo di ciascun ordine utilizzando la funzione MAX con la clausola OVER.
+
+Esercizio 9: Trova il numero di ordini effettuati da ogni cliente e ordina i risultati in base al numero di ordini in ordine decrescente.
+Soluzione:
+
+```sql
+SELECT CustomerID, COUNT(*) OVER (PARTITION BY CustomerID) AS TotalOrders
+FROM Sales.SalesOrderHeader
+ORDER BY TotalOrders DESC;
+```
+In questo esempio, utilizziamo la funzione di aggregazione COUNT con la clausola OVER per calcolare il numero di ordini effettuati da ogni cliente e quindi ordiniamo i risultati in base al numero di ordini in ordine decrescente.
+
+Esercizio 10: Calcola la somma cumulativa degli importi degli ordini per ogni cliente.
+Soluzione:
+
+```sql
+SELECT CustomerID, TotalDue,
+       SUM(TotalDue) OVER (PARTITION BY CustomerID ORDER BY OrderDate) AS CumulativeAmount
+FROM Sales.SalesOrderHeader;
+```
+In questo esempio, utilizziamo la funzione di aggregazione SUM con la clausola OVER per calcolare la somma cumulativa degli importi degli ordini per ogni cliente, ordinata per la colonna OrderDate.
+
+Questi esempi mostrano come utilizzare le Window Function con la clausola OVER per risolvere diversi tipi di problemi analitici utilizzando AdventureWorks 2014 come database di esempio. Assicurati di avere il database AdventureWorks 2014 correttamente installato e configurato per eseguire le query.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
