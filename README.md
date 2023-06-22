@@ -240,8 +240,7 @@ FROM Sales.SalesOrderHeader;
 ```
 In questo esempio, utilizziamo la funzione di aggregazione SUM con la clausola OVER per calcolare la somma cumulativa degli importi degli ordini per ogni cliente, ordinata per la colonna OrderDate.
 
-Questi esempi mostrano come utilizzare le Window Function con la clausola OVER per risolvere diversi tipi di problemi analitici utilizzando AdventureWorks 2014 come database di esempio. Assicurati di avere il database AdventureWorks 2014 correttamente installato e configurato per eseguire le query.
-
+Questi esempi mostrano come utilizzare le Window Function con la clausola OVER per risolvere diversi tipi di problemi analitici utilizzando AdventureWorks 2014 come database di esempio.
 
 
 
