@@ -1030,6 +1030,54 @@ Certo, ecco altri dieci esercizi di query SQL con un livello di difficoltà cres
     HAVING SUM(sod.OrderQty) > 100;
     ```
 
+___________________________________________________________
+
+## SQL DINAMICO 
+
+
+
+SQL dinamico è un tipo di SQL in cui le stringhe SQL vengono generate dinamicamente, permettendo una flessibilità che non è disponibile nell'SQL statico. Tuttavia, è necessario utilizzarlo con cautela per evitare rischi di sicurezza, come l'iniezione SQL.
+
+Ecco un esempio di come potrebbe essere utilizzato in SQL Server:
+
+```sql
+DECLARE @nomeTabella AS NVARCHAR(128)
+DECLARE @sql AS NVARCHAR(MAX)
+
+SET @nomeTabella = N'MiaTabella'
+
+SET @sql = N'SELECT * FROM ' + QUOTENAME(@nomeTabella)
+
+EXEC sp_executesql @sql
+```
+
+In questo esempio, stiamo creando una stringa SQL per selezionare tutti i record da una tabella il cui nome è immagazzinato nella variabile `@nomeTabella`. Utilizziamo la funzione `QUOTENAME` per garantire che il nome della tabella sia correttamente quotato, evitando così potenziali problemi di iniezione SQL.
+
+Una volta che abbiamo generato la nostra stringa SQL, utilizziamo la stored procedure di sistema `sp_executesql` per eseguirla.
+
+L'utilizzo di SQL dinamico può rendere le tue query più difficili da leggere e da mantenere, e può presentare problemi di sicurezza se non gestito correttamente. Dovresti cercare di limitare il suo utilizzo ai casi in cui è strettamente necessario. 
+
+Ecco come utilizzare il SQL dinamico con parametri:
+
+```sql
+DECLARE @nomeTabella AS NVARCHAR(128)
+DECLARE @nomeColonna AS NVARCHAR(128)
+DECLARE @valore AS NVARCHAR(128)
+DECLARE @sql AS NVARCHAR(MAX)
+
+SET @nomeTabella = N'MiaTabella'
+SET @nomeColonna = N'MiaColonna'
+SET @valore = N'MioValore'
+
+SET @sql = N'SELECT * FROM ' + QUOTENAME(@nomeTabella) + ' WHERE ' + QUOTENAME(@nomeColonna) + ' = @pValore'
+
+EXEC sp_executesql @sql, N'@pValore NVARCHAR(128)', @pValore = @valore
+```
+
+In questo esempio, utilizziamo la stored procedure `sp_executesql` con parametri. Questo permette di evitare i problemi di iniezione SQL quando si utilizza SQL dinamico.
+
+
+
 
 
 
