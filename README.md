@@ -1077,9 +1077,28 @@ EXEC sp_executesql @sql, N'@pValore NVARCHAR(128)', @pValore = @valore
 In questo esempio, utilizziamo la stored procedure `sp_executesql` con parametri. Questo permette di evitare i problemi di iniezione SQL quando si utilizza SQL dinamico.
 
 
+______________________________
 
 
 
+# pivotare i dati tramite pivot
+
+
+
+
+Pivotare i dati tramite l'operatore PIVOT in SQL Server è un'operazione utile quando si desidera trasformare righe di dati in colonne, aggregando e organizzando le informazioni in base a determinate condizioni. Questo processo di pivotaggio può semplificare l'analisi dei dati e rendere più leggibili i risultati ottenuti.
+
+L'operatore PIVOT di SQL Server consente di specificare una colonna di input dalla quale estrarre i valori unici e di definire le colonne di output che verranno create in base a questi valori unici. Inoltre, è possibile specificare le operazioni di aggregazione da applicare sui dati durante la trasformazione.
+
+Quando si utilizza l'operatore PIVOT, è comune avere una colonna di input che rappresenta le categorie o i fattori su cui si desidera pivotare i dati, ad esempio una colonna di anni, di regioni geografiche o di tipi di prodotti. Le righe corrispondenti a queste categorie diventeranno le nuove colonne nel risultato pivotato.
+
+Per eseguire un'operazione di pivotaggio, è necessario specificare la colonna di input e le colonne di output desiderate. È anche possibile applicare funzioni di aggregazione, come SUM, COUNT o AVG, per calcolare i valori delle nuove colonne basate sui dati di input corrispondenti.
+
+L'operatore PIVOT è disponibile in SQL Server ed è particolarmente utile quando si desidera analizzare i dati in modo più intuitivo e comprensibile, fornendo una visione riassuntiva delle informazioni presenti nella tabella di origine.
+
+Tuttavia, è importante notare che l'operatore PIVOT è supportato solo nelle edizioni di SQL Server che lo consentono. Pertanto, assicurati di utilizzare un'edizione che supporti questa funzionalità quando esegui le operazioni di pivotaggio sui tuoi dati.
+
+In conclusione, pivotare i dati tramite l'operatore PIVOT in SQL Server offre un modo efficace per trasformare, aggregare e organizzare le informazioni, semplificando l'analisi dei dati e migliorando la comprensione dei risultati ottenuti.
 
 
 
