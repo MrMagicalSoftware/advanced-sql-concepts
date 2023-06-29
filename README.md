@@ -1080,6 +1080,181 @@ In questo esempio, utilizziamo la stored procedure `sp_executesql` con parametri
 ______________________________
 
 
+# PARAMETER SNIFFING 
+
+
+Il fenomeno del "parameter sniffing" si verifica nelle stored procedure di database quando un parametro di input viene utilizzato per determinare il piano di esecuzione della query. Questo può portare a problemi di prestazioni quando i dati iniziali utilizzati per creare il piano di esecuzione non sono rappresentativi dei dati effettivi utilizzati in seguito.
+
+Quando viene eseguita una stored procedure per la prima volta, il database crea un piano di esecuzione basato sui valori dei parametri di input forniti. Questo piano di esecuzione viene quindi memorizzato nella cache per le successive esecuzioni della stessa stored procedure. Tuttavia, se i valori dei parametri successivi sono molto diversi da quelli utilizzati per generare il piano di esecuzione memorizzato nella cache, potrebbe essere scelto un piano di esecuzione non ottimale per i nuovi valori dei parametri, il che potrebbe influire negativamente sulle prestazioni.
+
+Ad esempio, supponiamo di avere una stored procedure che restituisce un elenco di ordini in base a un determinato stato. Se la stored procedure viene eseguita per la prima volta con uno stato "in attesa" e viene generato un piano di esecuzione che utilizza un indice specifico per recuperare rapidamente i risultati, il piano di esecuzione verrà memorizzato nella cache. Tuttavia, se la stored procedure viene eseguita successivamente con uno stato diverso, ad esempio "completato", e l'indice utilizzato nel piano di esecuzione memorizzato non è efficace per questo stato, le prestazioni potrebbero essere degradate.
+
+Per mitigare il problema del parameter sniffing, ci sono diverse possibili soluzioni:
+
+1. Utilizzare l'opzione di ricompilazione: è possibile utilizzare l'opzione di ricompilazione per generare un nuovo piano di esecuzione ad ogni esecuzione della stored procedure. Questo garantisce che il piano di esecuzione venga creato in base ai valori dei parametri specifici di ogni esecuzione. Tuttavia, potrebbe comportare un sovraccarico di compilazione per stored procedure complesse o frequentemente utilizzate.
+
+2. Utilizzare l'opzione di ottimizzazione FORCEREORDER: questa opzione consente di forzare l'ordine di valutazione delle tabelle nella query. Può essere utile quando si ha la certezza che un determinato ordine di valutazione delle tabelle produce un piano di esecuzione ottimale indipendentemente dai valori dei parametri.
+
+3. Utilizzare istruzioni SQL dinamiche: invece di utilizzare direttamente i parametri di input nella query, è possibile costruire un'istruzione SQL dinamica all'interno della stored procedure utilizzando i valori dei parametri. In questo modo, il piano di esecuzione viene creato in base alla query specifica e non ai valori dei parametri.
+
+4. Aggiornare le statistiche: assicurarsi che le statistiche delle tabelle coinvolte nella query siano aggiornate regolarmente. Le statistiche forniscono informazioni sulle distribuzioni dei dati all'interno delle tabelle e sono utilizzate dal motore di database per generare piani di esecuzione ottimali.
+
+5. Utilizzare hint di query: è possibile
+
+ utilizzare hint di query per specificare un piano di esecuzione specifico per la stored procedure. Tuttavia, l'uso eccessivo di hint potrebbe rendere il codice più difficile da mantenere e potrebbe non essere la soluzione ottimale a lungo termine.
+
+Ogni soluzione ha i suoi pro e contro, e la scelta dipende dal contesto specifico e dalle esigenze del sistema. È consigliabile effettuare test e monitorare le prestazioni per determinare quale soluzione funziona meglio nel proprio ambiente.
+
+
+
+ Esempi che illustrano come affrontare il problema del parameter sniffing nelle stored procedure:
+
+1. Utilizzo dell'opzione di ricompilazione:
+
+```sql
+CREATE PROCEDURE GetOrdersByStatus
+    @Status varchar(10)
+AS
+BEGIN
+    OPTION (RECOMPILE) -- Forza la ricompilazione ad ogni esecuzione
+    SELECT * FROM Orders WHERE Status = @Status
+END
+```
+
+2. Utilizzo dell'opzione di ottimizzazione FORCEREORDER:
+
+```sql
+CREATE PROCEDURE GetOrdersByStatus
+    @Status varchar(10)
+AS
+BEGIN
+    SELECT *
+    FROM Orders
+    WHERE Status = @Status
+    OPTION (FORCE ORDER) -- Forza un particolare ordine di valutazione delle tabelle
+END
+```
+
+3. Utilizzo di istruzioni SQL dinamiche:
+
+```sql
+CREATE PROCEDURE GetOrdersByStatus
+    @Status varchar(10)
+AS
+BEGIN
+    DECLARE @SQL nvarchar(MAX)
+    SET @SQL = N'SELECT * FROM Orders WHERE Status = @Status'
+
+    EXEC sp_executesql @SQL, N'@Status varchar(10)', @Status = @Status
+END
+```
+
+4. Aggiornamento delle statistiche:
+
+```sql
+CREATE PROCEDURE GetOrdersByStatus
+    @Status varchar(10)
+AS
+BEGIN
+    UPDATE STATISTICS Orders -- Aggiorna le statistiche della tabella Orders
+    SELECT * FROM Orders WHERE Status = @Status
+END
+```
+
+5. Utilizzo di hint di query:
+
+```sql
+CREATE PROCEDURE GetOrdersByStatus
+    @Status varchar(10)
+AS
+BEGIN
+    SELECT *
+    FROM Orders WITH (INDEX(Orders_StatusIndex)) -- Utilizza un indice specifico
+    WHERE Status = @Status
+END
+```
+
+Ricorda che la scelta della soluzione dipende dalle caratteristiche del tuo sistema e dai requisiti specifici. Assicurati di effettuare test e monitorare le prestazioni per determinare quale soluzione funzioni meglio nel tuo contesto.
+
+## conoscere i vari metodi per risolvere il paramter sniffing
+
+
+panoramica dei vari metodi comunemente utilizzati per risolvere il problema del parameter sniffing nelle stored procedure:
+
+1. Opzione di ricompilazione: Utilizzare l'opzione `OPTION (RECOMPILE)` all'interno della stored procedure forza la ricompilazione della query ad ogni esecuzione. In questo modo, il piano di esecuzione viene generato in base ai valori dei parametri specifici di ogni esecuzione. Tuttavia, questa opzione può comportare un sovraccarico di compilazione, specialmente per le stored procedure complesse o frequentemente utilizzate.
+
+2. Ottimizzazione FORCEREORDER: Utilizzare l'opzione `OPTION (FORCE ORDER)` all'interno della stored procedure forza un particolare ordine di valutazione delle tabelle nella query. Questo può essere utile quando si conosce un ordine di valutazione che produce un piano di esecuzione ottimale indipendentemente dai valori dei parametri.
+
+3. Utilizzo di istruzioni SQL dinamiche: Costruire un'istruzione SQL dinamica all'interno della stored procedure utilizzando i valori dei parametri. In questo modo, il piano di esecuzione viene creato in base alla query specifica e non ai valori dei parametri. L'utilizzo di istruzioni SQL dinamiche può fornire una maggiore flessibilità nel generare piani di esecuzione ottimali.
+
+4. Aggiornamento delle statistiche: Assicurarsi che le statistiche delle tabelle coinvolte nella query siano aggiornate regolarmente. Le statistiche forniscono informazioni sulle distribuzioni dei dati all'interno delle tabelle e sono utilizzate dal motore di database per generare piani di esecuzione ottimali. L'aggiornamento delle statistiche può aiutare a garantire che i piani di esecuzione siano adatti ai valori dei parametri correnti.
+
+5. Utilizzo di hint di query: Utilizzare hint di query per specificare un piano di esecuzione specifico per la stored procedure. Gli hint di query forniscono istruzioni esplicite al motore di database su come eseguire una query. Tuttavia, l'uso eccessivo di hint può rendere il codice più difficile da mantenere e potrebbe non essere la soluzione ottimale a lungo termine.
+
+6. Utilizzo di pianificazione automatica: A partire da versioni recenti di alcuni database, come SQL Server, è disponibile la "pianificazione automatica avanzata". Questa funzionalità consente al motore di database di adattare automaticamente i piani di esecuzione in base ai valori dei parametri, fornendo una soluzione integrata per il problema del parameter sniffing.
+
+La scelta del metodo dipende dal contesto specifico e dalle esigenze del sistema. È importante effettuare test e monitorare le prestazioni per determinare quale soluzione funziona meglio nel proprio ambiente.
+
+
+# opzione with recompile
+
+L'opzione `WITH RECOMPILE` viene utilizzata all'interno di una stored procedure per forzare la ricompilazione della query ad ogni esecuzione. Ciò significa che ogni volta che la stored procedure viene chiamata, il piano di esecuzione viene generato dinamicamente in base ai valori dei parametri forniti in quella specifica esecuzione. Di seguito sono riportati gli effetti principali dell'utilizzo dell'opzione `WITH RECOMPILE`:
+
+1. Pianificazione dinamica: Quando viene utilizzata l'opzione `WITH RECOMPILE`, il motore di database genera un nuovo piano di esecuzione per la stored procedure ad ogni esecuzione. Questo consente di adattare il piano di esecuzione in base ai valori dei parametri specifici di ogni chiamata. Pertanto, il piano di esecuzione sarà ottimizzato per i valori dei parametri correnti, potenzialmente migliorando le prestazioni.
+
+2. Riduzione dell'uso della cache: L'utilizzo dell'opzione `WITH RECOMPILE` evita che il piano di esecuzione venga memorizzato nella cache del database. Poiché il piano viene generato dinamicamente ad ogni esecuzione, non verrà riutilizzato per le chiamate successive. Questo comporta una riduzione dell'utilizzo della cache, ma allo stesso tempo può comportare un aumento del carico di lavoro sulla CPU e un potenziale ritardo nelle prestazioni dovuto alla necessità di ricompilare la query ad ogni esecuzione.
+
+3. Adattabilità ai cambiamenti dei dati: Poiché il piano di esecuzione viene generato in base ai valori dei parametri specifici di ogni esecuzione, l'utilizzo dell'opzione `WITH RECOMPILE` consente alla stored procedure di adattarsi ai cambiamenti dei dati nel database. Se i dati cambiano notevolmente tra le diverse esecuzioni, questo può evitare l'uso di un piano di esecuzione non ottimale basato su dati precedenti.
+
+4. Overhead di compilazione: L'utilizzo dell'opzione `WITH RECOMPILE` comporta un overhead di compilazione aggiuntivo ad ogni esecuzione della stored procedure. La generazione dinamica del piano di esecuzione richiede tempo e risorse della CPU. Pertanto, se la stored procedure viene chiamata frequentemente o se è complessa, l'utilizzo di `WITH RECOMPILE` potrebbe causare un sovraccarico significativo e influire sulle prestazioni complessive del sistema.
+
+In generale, l'opzione `WITH RECOMPILE` è utile quando si desidera adattare il piano di esecuzione in base ai valori dei parametri specifici di ogni esecuzione. Tuttavia, è importante valutare attentamente gli effetti sull'overhead di compilazione e le prestazioni complessive del sistema prima di utilizzarla.
+
+___________
+
+Ecco alcuni esempi che illustrano l'utilizzo dell'opzione `WITH RECOMPILE` all'interno di una stored procedure:
+
+Esempio 1: Utilizzo di `WITH RECOMPILE` per forzare la ricompilazione di una query ad ogni esecuzione:
+
+```sql
+CREATE PROCEDURE GetOrdersByStatus
+    @Status varchar(10)
+AS
+BEGIN
+    SELECT * FROM Orders WHERE Status = @Status
+    OPTION (RECOMPILE)
+END
+```
+
+In questo esempio, la stored procedure `GetOrdersByStatus` restituisce gli ordini in base a uno stato specifico. L'opzione `OPTION (RECOMPILE)` è utilizzata per forzare la ricompilazione della query ad ogni esecuzione, consentendo al piano di esecuzione di adattarsi ai valori dei parametri specifici di ogni chiamata.
+
+Esempio 2: Utilizzo di `WITH RECOMPILE` con una stored procedure complessa:
+
+```sql
+CREATE PROCEDURE GetCustomerOrders
+    @CustomerId int
+AS
+BEGIN
+    -- Query complessa che coinvolge più tabelle e condizioni
+    SELECT o.OrderId, o.OrderDate, c.CustomerName
+    FROM Orders o
+    INNER JOIN Customers c ON o.CustomerId = c.CustomerId
+    WHERE o.CustomerId = @CustomerId
+    OPTION (RECOMPILE)
+END
+```
+
+In questo esempio, la stored procedure `GetCustomerOrders` restituisce gli ordini di un determinato cliente. La query coinvolge più tabelle e condizioni complesse. L'utilizzo di `OPTION (RECOMPILE)` garantisce che il piano di esecuzione venga generato dinamicamente ad ogni esecuzione, adattandosi ai valori del parametro `@CustomerId` specifico di ogni chiamata.
+
+Ricorda che l'utilizzo di `WITH RECOMPILE` deve essere valutato attentamente in base alle esigenze specifiche del sistema. Sebbene possa consentire un adattamento ottimale del piano di esecuzione, potrebbe comportare un sovraccarico di compilazione significativo, soprattutto per le stored procedure complesse o frequentemente utilizzate.
+
+
+
+
+
+
+
+
 
 # pivotare i dati tramite pivot
 
