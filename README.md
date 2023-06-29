@@ -135,7 +135,6 @@ ORDER BY order_date ASC;
 
 
 
-Certamente! Di seguito troverai 10 esercizi con relative soluzioni e codice utilizzando le Window Function con la clausola OVER in SQL Server utilizzando AdventureWorks 2014 come esempio.
 
 Esercizio 1: Calcola la somma totale degli importi degli ordini per ogni cliente.
 Soluzione:
