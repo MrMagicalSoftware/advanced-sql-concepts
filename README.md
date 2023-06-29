@@ -1101,7 +1101,56 @@ Tuttavia, è importante notare che l'operatore PIVOT è supportato solo nelle ed
 In conclusione, pivotare i dati tramite l'operatore PIVOT in SQL Server offre un modo efficace per trasformare, aggregare e organizzare le informazioni, semplificando l'analisi dei dati e migliorando la comprensione dei risultati ottenuti.
 
 
+## Esempio pratico :
 
+
+Per pivotare i dati utilizzando SQL Server, puoi utilizzare l'operatore PIVOT. L'operatore PIVOT ti consente di trasformare righe in colonne, aggregando i dati in base a determinate condizioni.
+
+Ecco un esempio di come puoi utilizzare l'operatore PIVOT in SQL Server:
+
+Supponiamo di avere una tabella chiamata "Sales" con i seguenti dati:
+
+| Product | Category | Year | SalesAmount |
+|---------|----------|------|-------------|
+| A       | X        | 2019 | 1000        |
+| A       | X        | 2020 | 1500        |
+| A       | Y        | 2019 | 2000        |
+| A       | Y        | 2020 | 2500        |
+| B       | X        | 2019 | 3000        |
+| B       | X        | 2020 | 3500        |
+| B       | Y        | 2019 | 4000        |
+| B       | Y        | 2020 | 4500        |
+
+Se vogliamo pivotare i dati sulla colonna "Year" e visualizzare le vendite totali per ogni combinazione di "Product" e "Category", possiamo utilizzare il seguente codice SQL:
+
+```sql
+SELECT Product, Category, [2019], [2020]
+FROM
+(
+  SELECT Product, Category, Year, SalesAmount
+  FROM Sales
+) AS SourceTable
+PIVOT
+(
+  SUM(SalesAmount)
+  FOR Year IN ([2019], [2020])
+) AS PivotTable;
+```
+
+Il risultato ottenuto sarà il seguente:
+
+| Product | Category | 2019 | 2020 |
+|---------|----------|------|------|
+| A       | X        | 1000 | 1500 |
+| A       | Y        | 2000 | 2500 |
+| B       | X        | 3000 | 3500 |
+| B       | Y        | 4000 | 4500 |
+
+Come puoi vedere, i dati sono stati pivotati in modo da avere una colonna separata per ogni anno, mostrando le vendite totali corrispondenti.
+
+Puoi personalizzare ulteriormente l'operazione di pivotaggio aggiungendo altre clausole come ORDER BY o WHERE per filtrare o ordinare i risultati secondo le tue esigenze.
+
+Ricorda che l'operatore PIVOT è disponibile solo nelle edizioni di SQL Server che supportano la funzionalità.
 
 
 
