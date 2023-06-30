@@ -1328,6 +1328,195 @@ Puoi personalizzare ulteriormente l'operazione di pivotaggio aggiungendo altre c
 Ricorda che l'operatore PIVOT è disponibile solo nelle edizioni di SQL Server che supportano la funzionalità.
 
 
+-_____________
+
+
+
+
+1. **Ottimizzare la Query di Join**
+    - Query Originale:
+    ```sql
+    SELECT * 
+    FROM Sales.SalesOrderHeader SOH
+    JOIN Sales.SalesOrderDetail SOD 
+    ON SOH.SalesOrderID = SOD.SalesOrderID
+    ```
+    - Ottimizzazione: seleziona solo i campi richiesti invece di tutti i campi (*)
+
+2. **Rimuovere Subquery Inutili**
+    - Query Originale:
+    ```sql
+    SELECT SalesOrderID, OrderDate
+    FROM Sales.SalesOrderHeader
+    WHERE SalesOrderID IN (SELECT SalesOrderID FROM Sales.SalesOrderDetail)
+    ```
+    - Ottimizzazione: sostituisci la subquery con un INNER JOIN.
+
+3. **Evitare l'Uso di Operatori di Confronto Inefficaci**
+    - Query Originale:
+    ```sql
+    SELECT * 
+    FROM HumanResources.Employee 
+    WHERE (JobTitle NOT LIKE '%Marketing%')
+    ```
+    - Ottimizzazione: se possibile, evita di utilizzare operatori LIKE con wildcard ad entrambi i lati.
+
+4. **Evitare SELECT DISTINCT Quando Non Necessario**
+    - Query Originale:
+    ```sql
+    SELECT DISTINCT FirstName, LastName
+    FROM Person.Person
+    ```
+    - Ottimizzazione: usa GROUP BY invece di DISTINCT se stai facendo operazioni di aggregazione.
+
+5. **Sostituire UNION con UNION ALL quando sia appropriato**
+    - Query Originale:
+    ```sql
+    SELECT City FROM Person.Address
+    UNION
+    SELECT City FROM Person.AddressType
+    ```
+    - Ottimizzazione: usa UNION ALL se non ci sono duplicati o se i duplicati non sono un problema. UNION ALL è più veloce perché non richiede un'operazione di distinzione.
+
+6. **Ridurre l'Uso di OR**
+    - Query Originale:
+    ```sql
+    SELECT * 
+    FROM Sales.SalesOrderHeader
+    WHERE SalesOrderID = 500 OR SalesOrderID = 600
+    ```
+    - Ottimizzazione: usa IN al posto di OR se possibile.
+
+7. **Rimuovere Funzioni dalla Clausola WHERE**
+    - Query Originale:
+    ```sql
+    SELECT * 
+    FROM Sales.SalesOrderHeader
+    WHERE YEAR(OrderDate) = 2014
+    ```
+    - Ottimizzazione: se possibile, evita di utilizzare funzioni in WHERE.
+
+8. **Utilizzare l'Indice su Colonne Utilizzate nelle Clausole JOIN**
+    - Query Originale:
+    ```sql
+    SELECT * 
+    FROM Sales.SalesOrderHeader SOH
+    JOIN Sales.SalesOrderDetail SOD 
+    ON SOH.SalesOrderID = SOD.SalesOrderID
+    ```
+    - Ottimizzazione: assicurati che SalesOrderID sia indicizzato.
+
+9. **Evitare l'Uso di IS NULL**
+    - Query Originale:
+    ```sql
+    SELECT * 
+    FROM Sales.SalesOrderHeader
+    WHERE SalesPersonID IS NULL
+    ```
+    - Ottimizzazione: se possibile, evita l'uso di IS NULL nelle clausole WHERE.
+
+10. **Utilizzare l'Indice su Colonne Ordinate**
+    - Query Originale:
+
+
+    ```sql
+    SELECT * 
+    FROM Sales.SalesOrderHeader
+    ORDER BY OrderDate
+    ```
+    - Ottimizzazione: assicurati che OrderDate sia indicizzato.
+
+11. **Evitare Conversioni Implicite di Tipo**
+    - Query Originale:
+    ```sql
+    SELECT * 
+    FROM Sales.SalesOrderDetail
+    WHERE ProductID = '680'
+    ```
+    - Ottimizzazione: assicurati che il tipo di dati della colonna corrisponda al tipo di dati della tua clausola WHERE.
+
+12. **Ottimizzare la Clausola TOP**
+    - Query Originale:
+    ```sql
+    SELECT TOP 100 * 
+    FROM Sales.SalesOrderDetail
+    ORDER BY OrderQty DESC
+    ```
+    - Ottimizzazione: utilizza la clausola WHERE per filtrare i risultati prima di utilizzare TOP.
+
+13. **Ottimizzare le Query Aggregative**
+    - Query Originale:
+    ```sql
+    SELECT AVG(OrderQty) 
+    FROM Sales.SalesOrderDetail
+    ```
+    - Ottimizzazione: se possibile, riduci il set di dati su cui viene eseguita l'aggregazione.
+
+14. **Ottimizzare l'Uso di BETWEEN**
+    - Query Originale:
+    ```sql
+    SELECT * 
+    FROM Sales.SalesOrderHeader
+    WHERE OrderDate BETWEEN '2005-07-01' AND '2005-07-31'
+    ```
+    - Ottimizzazione: l'uso di BETWEEN può essere inefficiente con i tipi di dati datetime a causa della precisione ai millisecondi. Potrebbe essere meglio utilizzare >= e < con il primo giorno del mese successivo.
+
+15. **Ottimizzare le Query con Clausola EXISTS**
+    - Query Originale:
+    ```sql
+    SELECT * 
+    FROM Sales.SalesOrderHeader SOH
+    WHERE EXISTS (SELECT 1 FROM Sales.SalesOrderDetail SOD WHERE SOH.SalesOrderID = SOD.SalesOrderID AND SOD.OrderQty > 100)
+    ```
+    - Ottimizzazione: considera l'uso di JOIN invece di EXISTS se appropriato.
+
+16. **Ridurre l'Uso di Funzioni Non Deterministiche**
+    - Query Originale:
+    ```sql
+    SELECT * 
+    FROM Sales.SalesOrderHeader
+    WHERE OrderDate = GETDATE()
+    ```
+    - Ottimizzazione: se possibile, evita di utilizzare funzioni non deterministiche nelle clausole WHERE.
+
+17. **Utilizzare JOIN invece di IN**
+    - Query Originale:
+    ```sql
+    SELECT * 
+    FROM Sales.SalesOrderHeader
+    WHERE SalesOrderID IN (SELECT SalesOrderID FROM Sales.SalesOrderDetail)
+    ```
+    - Ottimizzazione: considera l'uso di JOIN invece di IN.
+
+18. **Ottimizzare l'Uso di Funzioni Scalar**
+    - Query Originale:
+    ```sql
+    SELECT dbo.MyFunction(ProductID) 
+    FROM Production.Product
+    ```
+    - Ottimizzazione: se possibile, evita di utilizzare funzioni scalar nella SELECT.
+
+19. **Ridurre l'Uso di Clausola HAVING**
+    - Query Originale:
+    ```sql
+    SELECT ProductID, SUM(OrderQty)
+    FROM Sales.SalesOrderDetail
+    GROUP BY ProductID
+    HAVING SUM(OrderQty) > 100
+    ```
+    - Ottimizzazione: se possibile, riduci l'uso della clausola HAVING filtrando i dati prima dell'ag
+
+gregazione.
+
+20. **Ottimizzare l'Uso di LEFT JOIN**
+    - Query Originale:
+    ```sql
+    SELECT * 
+    FROM Sales.SalesOrderHeader SOH
+    LEFT JOIN Sales.SalesOrderDetail SOD 
+    ON SOH.SalesOrderID = SOD.SalesOrderID
+    ```
+    - Ottimizzazione: considera se un INNER JOIN potrebbe essere più appropriato. Inoltre, evita di utilizzare SELECT * quando utilizzi JOIN.
 
 
 
